@@ -2,43 +2,52 @@
 //  main.swift
 //  CrossUI
 //
-//  Created by Noah Moller on 30/12/2024.
+//  Created by You on 30/12/2024.
 //
 
 import Foundation
 import CrossUI
 
-// #if canImport(Glibc) or #if os(Windows) checks might be used for platform detection
 #if os(Windows)
-let currentPlatform = Platform.windows
+let nativePlatform = Platform.windows
 #elseif os(macOS)
-let currentPlatform = Platform.macOS
+let nativePlatform = Platform.macOS
 #else
-let currentPlatform = Platform.linux
+let nativePlatform = Platform.linux
 #endif
 
-// A simple parse of command-line arguments:
 let args = CommandLine.arguments
 
 guard args.count > 1 else {
-    print("Usage: cross <command>\nCommands: build")
+    print("""
+    Usage:
+      cross new <projectName>    Create a new CrossUI project
+      cross build                Generate and/or build all platform projects
+    """)
     exit(1)
 }
 
 let command = args[1]
 
-// Switch on the subcommand
 switch command {
-case "build":
-    // In a real tool, you'd parse more options,
-    // like `--platform windows` or `--platform macos`.
-    // For now, let's just do a simplified approach.
-    
-    // 1) Load user project code
-    //    - In a real scenario, you might dynamically load a Swift package,
-    //      or the user might define some known entry point.
-    //    - For demonstration, let's define a quick inline "ContentView".
 
+case "new":
+    guard args.count > 2 else {
+        print("Usage: cross new <projectName>")
+        exit(1)
+    }
+    let projectName = args[2]
+    
+    do {
+        try createNewProject(named: projectName)
+        print("New CrossUI project created: \(projectName)")
+    } catch {
+        print("Error creating project: \(error)")
+        exit(1)
+    }
+    exit(0)
+
+case "build":
     struct ContentView {
         let body: some View = VStack {
             Text("Hello from CrossUI!")
@@ -46,46 +55,33 @@ case "build":
         }
     }
     let rootView = ContentView().body
+    do {
+        try generateMacOSProject(appName: "MyCrossUIApp", rootView: rootView)
+        print("Generated macOS project in Build/macOS")
+    } catch {
+        print("Error generating macOS project: \(error)")
+    }
     
-    // 2) Render the UI code for the detected platform
-    switch currentPlatform {
-    case .windows:
-        let xamlOutput = renderWinUIRoot(rootView)
-        do {
-            try xamlOutput.write(toFile: "MainPage.xaml", atomically: true, encoding: .utf8)
-            print("Generated MainPage.xaml (WinUI)")
-            // Optionally run a Windows build step here
-        } catch {
-            print("Error writing XAML file: \(error)")
-            exit(1)
-        }
-        
-    case .macOS:
-        // For demonstration, let's pretend we generate SwiftUI code
-        // and write it to a file (not typical, but as an example):
-        let swiftUIOutput = rootView.render(platform: .macOS)
-        do {
-            try swiftUIOutput.write(toFile: "MacUI.swift", atomically: true, encoding: .utf8)
-            print("Generated MacUI.swift (SwiftUI)")
-            // Optionally compile with Xcode, etc.
-        } catch {
-            print("Error writing MacUI.swift: \(error)")
-            exit(1)
-        }
-        
-    case .linux:
-        // In the future: generate some Linux code, e.g. Gtk or something else
-        let linuxUIOutput = rootView.render(platform: .linux)
-        do {
-            try linuxUIOutput.write(toFile: "LinuxUI.swift", atomically: true, encoding: .utf8)
-            print("Generated LinuxUI.swift (Linux UI)")
-        } catch {
-            print("Error writing LinuxUI.swift: \(error)")
-            exit(1)
-        }
+    do {
+        try generateWindowsProject(appName: "MyCrossUIApp", rootView: rootView)
+        print("Generated Windows project in Build/windows")
+    } catch {
+        print("Error generating Windows project: \(error)")
+    }
+    
+    do {
+        try generateLinuxProject(appName: "MyCrossUIApp", rootView: rootView)
+        print("Generated Linux project in Build/linux")
+    } catch {
+        print("Error generating Linux project: \(error)")
     }
 
-    // Done building
+    do {
+        try compileNativePlatform(appName: "MyCrossUIApp", platform: nativePlatform)
+    } catch {
+        print("Native build failed: \(error)")
+    }
+    
     exit(0)
 
 default:
