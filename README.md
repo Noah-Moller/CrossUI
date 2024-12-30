@@ -47,7 +47,7 @@
 
 1. **Clone** this repository or download it:
    ```bash
-   git clone https://github.com/YourUserName/CrossUI.git
+   git clone https://github.com/Noah-Moller/CrossUI.git
    cd CrossUI
    ```
 
