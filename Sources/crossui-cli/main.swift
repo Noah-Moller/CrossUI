@@ -74,8 +74,16 @@ func buildProject() throws {
 }
 
 func findMainSwiftFile(in sourcesDir: String) throws -> String? {
-    let mainFilePath = "\(sourcesDir)/main.swift"
-    return FileManager.default.fileExists(atPath: mainFilePath) ? mainFilePath : nil
+    let fileManager = FileManager.default
+
+    let enumerator = fileManager.enumerator(atPath: sourcesDir)
+    while let element = enumerator?.nextObject() as? String {
+        if element.hasSuffix("main.swift") {
+            return "\(sourcesDir)/\(element)"
+        }
+    }
+
+    return nil
 }
 
 func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> String {

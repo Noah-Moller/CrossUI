@@ -44,7 +44,7 @@ func createNewProject(named projectName: String) throws {
     let mainSwift = """
     import CrossUI
 
-    struct \(projectName): Project {
+    struct TestProject: Project {
         static let entryView = ContentView()
     }
     """
@@ -59,6 +59,10 @@ func createNewProject(named projectName: String) throws {
                 Text("Hello, CrossUI!")
                 Text("This is your main content view.")
             }
+        }
+
+        func render(platform: Platform) -> String {
+            body.render(platform: platform)
         }
     }
     """
