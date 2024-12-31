@@ -59,34 +59,28 @@ func buildProject() throws {
     let sourcesDir = "\(projectDir)/Sources"
     let buildDir = "\(projectDir)/Build"
 
-    // Find and validate the `main.swift` file
     guard let mainFile = try findMainSwiftFile(in: sourcesDir) else {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "main.swift not found in Sources."])
     }
 
     print("Found main.swift at: \(mainFile)")
 
-    // Dynamically compile and execute the main.swift file
     let entryViewDescription = try extractEntryViewDescription(from: mainFile, sourcesDir: sourcesDir)
 
     print("Extracted entry view description: \(entryViewDescription)")
 
-    // Generate platform-specific files
-    try generatePlatformFiles(from: entryViewDescription, buildDir: buildDir)
+    try generatePlatformFiles(from: entryViewDescription as! View, buildDir: buildDir)
     print("Build complete!")
 }
 
-// Locate `main.swift`
 func findMainSwiftFile(in sourcesDir: String) throws -> String? {
     let mainFilePath = "\(sourcesDir)/main.swift"
     return FileManager.default.fileExists(atPath: mainFilePath) ? mainFilePath : nil
 }
 
-// Compile and execute `main.swift` to extract the entry view
 func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> String {
     let tempExecutablePath = "\(sourcesDir)/tempExecutable"
 
-    // Compile the `main.swift` file using swiftc
     let compileProcess = Process()
     compileProcess.executableURL = URL(fileURLWithPath: "/usr/bin/swiftc")
     compileProcess.arguments = ["-o", tempExecutablePath, mainFile]
@@ -98,7 +92,6 @@ func extractEntryViewDescription(from mainFile: String, sourcesDir: String) thro
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to compile \(mainFile)."])
     }
 
-    // Execute the compiled binary to extract the entry view description
     let executeProcess = Process()
     executeProcess.executableURL = URL(fileURLWithPath: tempExecutablePath)
 
@@ -112,27 +105,24 @@ func extractEntryViewDescription(from mainFile: String, sourcesDir: String) thro
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to execute compiled \(mainFile)."])
     }
 
-    // Capture the output from the executable
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     guard let output = String(data: data, encoding: .utf8) else {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to capture output from \(tempExecutablePath)."])
     }
 
-    // Cleanup: Remove the temporary executable
     try FileManager.default.removeItem(atPath: tempExecutablePath)
 
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-// Generate platform-specific files from the entry view description
-func generatePlatformFiles(from entryViewDescription: String, buildDir: String) throws {
+func generatePlatformFiles(from entryViewDescription: View, buildDir: String) throws {
     let platforms: [Platform] = [.macOS, .windows, .linux]
 
     for platform in platforms {
         let outputDir = "\(buildDir)/\(platform)"
         try FileManager.default.createDirectory(atPath: outputDir, withIntermediateDirectories: true)
 
-        let renderedOutput = renderEntryView(description: entryViewDescription, platform: platform)
+        let renderedOutput = entryViewDescription.render(platform: platform)
         let outputFile: String
 
         switch platform {
@@ -149,7 +139,6 @@ func generatePlatformFiles(from entryViewDescription: String, buildDir: String) 
     }
 }
 
-// Render the entry view description for a specific platform
 func renderEntryView(description: String, platform: Platform) -> String {
     switch platform {
     case .macOS:

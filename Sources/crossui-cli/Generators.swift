@@ -62,11 +62,9 @@ func generateMacOSProject(appName: String, rootView: View) throws {
 func generateWindowsProject(appName: String, rootView: View) throws {
     let windowsDir = "Build/windows"
     try FileManager.default.createDirectory(atPath: windowsDir, withIntermediateDirectories: true, attributes: nil)
-    
-    // 1) Render WinUI XAML
+
     let xamlOutput = renderWinUIRoot(rootView)
-    
-    // 2) Write MainPage.xaml
+
     let mainPagePath = windowsDir + "/MainPage.xaml"
     try xamlOutput.write(toFile: mainPagePath, atomically: true, encoding: .utf8)
     

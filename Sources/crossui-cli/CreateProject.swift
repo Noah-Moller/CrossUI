@@ -13,11 +13,9 @@ func createNewProject(named projectName: String) throws {
     let sourcesDir = "\(projectDir)/Sources/\(projectName)"
     let testsDir = "\(projectDir)/Tests"
 
-    // Create project directory structure
     try fileManager.createDirectory(atPath: sourcesDir, withIntermediateDirectories: true)
     try fileManager.createDirectory(atPath: testsDir, withIntermediateDirectories: true)
 
-    // Generate `Package.swift`
     let packageSwift = """
     // swift-tools-version:5.7
     import PackageDescription
@@ -43,18 +41,15 @@ func createNewProject(named projectName: String) throws {
     """
     try packageSwift.write(toFile: "\(projectDir)/Package.swift", atomically: true, encoding: .utf8)
 
-    // Generate `main.swift`
     let mainSwift = """
     import CrossUI
 
     struct \(projectName): Project {
         static let entryView = ContentView()
-        }
     }
     """
     try mainSwift.write(toFile: "\(sourcesDir)/main.swift", atomically: true, encoding: .utf8)
 
-    // Generate `ContentView.swift`
     let contentViewSwift = """
     import CrossUI
 

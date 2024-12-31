@@ -12,27 +12,37 @@ public protocol View {
 }
 
 public protocol Project {
-    associatedtype ViewType: View
-    static var entryView: ViewType { get }
+    associatedtype EntryView: View
+    static var entryView: EntryView { get }
 }
 
 public enum Platform {
     case macOS, linux, windows
 }
 
-public struct Text: View {
+public protocol RenderableView: View {
+    func renderContent(platform: Platform) -> String
+}
+
+extension RenderableView {
+    public func render(platform: Platform) -> String {
+        renderContent(platform: platform)
+    }
+}
+
+public struct Text: RenderableView {
     let content: String
-    
+
     public init(_ content: String) {
         self.content = content
     }
-    
-    public func render(platform: Platform) -> String {
+
+    public func renderContent(platform: Platform) -> String {
         switch platform {
-        case .windows:
-            return "<TextBlock Text=\"\(content)\" />"
         case .macOS:
             return "Text(\"\(content)\")"
+        case .windows:
+            return "<TextBlock Text=\"\(content)\" />"
         case .linux:
             return "GtkLabel(\"\(content)\")"
         }
@@ -62,38 +72,33 @@ public struct Text: View {
 //    }
 //}
 
-public struct VStack: View {
+public struct VStack: RenderableView {
     let children: [View]
-    
+
     public init(@ViewBuilder _ content: () -> [View]) {
         self.children = content()
     }
-    
-    public func render(platform: Platform) -> String {
+
+    public func renderContent(platform: Platform) -> String {
         switch platform {
+        case .macOS:
+            return """
+            VStack {
+                \(children.map { $0.render(platform: .macOS) }.joined(separator: ", "))
+            }
+            """
         case .windows:
-            let childXaml = children
-                .map { $0.render(platform: .windows) }
-                .joined(separator: "\n")
             return """
             <StackPanel Orientation="Vertical">
-                \(childXaml)
+                \(children.map { $0.render(platform: .windows) }.joined(separator: "\n"))
             </StackPanel>
             """
-        case .macOS:
-            let childLines = children
-                .map { $0.render(platform: .macOS) }
-                .joined(separator: "\n")
-            return """
-                    VStack {
-                        \(childLines)
-                    }
-            """
         case .linux:
-            let childLines = children
-                .map { $0.render(platform: .linux) }
-                .joined(separator: ", ")
-            return "GtkBox(orientation: .vertical, children: [\(childLines)])"
+            return """
+            GtkVBox {
+                \(children.map { $0.render(platform: .linux) }.joined(separator: ", "))
+            }
+            """
         }
     }
 }
