@@ -14,6 +14,14 @@ public protocol View {
 public protocol Project {
     associatedtype EntryView: View
     static var entryView: EntryView { get }
+
+    static func entryViewDescription() -> String
+}
+
+extension Project {
+    public static func entryViewDescription() -> String {
+        return entryView.render(platform: .macOS)
+    }
 }
 
 public enum Platform {

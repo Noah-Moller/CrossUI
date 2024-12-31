@@ -47,6 +47,8 @@ func createNewProject(named projectName: String) throws {
     struct TestProject: Project {
         static let entryView = ContentView()
     }
+
+    print(TestProject.entryViewDescription())
     """
     try mainSwift.write(toFile: "\(sourcesDir)/main.swift", atomically: true, encoding: .utf8)
 
