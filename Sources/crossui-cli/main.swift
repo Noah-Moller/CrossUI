@@ -59,7 +59,7 @@ func buildProject() throws {
     let sourcesDir = "\(projectDir)/Sources"
     let buildDir = "\(projectDir)/Build"
 
-    guard let mainFile = try findMainSwiftFile(in: sourcesDir) else {
+    guard let mainFile = try findMainSwiftFile(in: sourcesDir, projectDirectory: projectDir) else {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "main.swift not found in Sources."])
     }
 
@@ -73,13 +73,13 @@ func buildProject() throws {
     print("Build complete!")
 }
 
-func findMainSwiftFile(in sourcesDir: String) throws -> String? {
+func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -> String? {
     let fileManager = FileManager.default
 
     let enumerator = fileManager.enumerator(atPath: sourcesDir)
     while let element = enumerator?.nextObject() as? String {
         if element.hasSuffix("main.swift") {
-            return "\(sourcesDir)/\(element)"
+            return "\(sourcesDir)/\(projectDirectory)/\(element)"
         }
     }
 
