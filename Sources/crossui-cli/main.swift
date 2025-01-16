@@ -69,7 +69,7 @@ func buildProject() throws {
 
     print("Extracted entry view description: \(entryViewDescription)")
 
-    try generatePlatformFiles(from: entryViewDescription as! View, buildDir: buildDir)
+    try generatePlatformFiles(from: entryViewDescription, buildDir: buildDir)
     print("Build complete!")
 }
 
