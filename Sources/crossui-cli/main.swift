@@ -64,12 +64,12 @@ func buildProject() throws {
     
     print("Found main.swift at: \(mainFile)")
     
-    let entryViewDescription = try extractEntryViewDescription(from: mainFile, sourcesDir: sourcesDir)
+    let (entryViewDescription, stateVariables) = try extractEntryViewDescription(from: mainFile, sourcesDir: sourcesDir)
     
     print("Extracted entry view description: \(entryViewDescription)")
     
     let projectName = projectDir.split(separator: "/").last ?? "CrossUIApp"
-    let wrapperView = DescriptionView(description: entryViewDescription)
+    let wrapperView = DescriptionView(description: entryViewDescription, stateVariables: stateVariables)
     
     // Generate platform-specific files
     try generateMacOSProject(appName: String(projectName), rootView: wrapperView)
@@ -143,7 +143,7 @@ func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -
     return nil
 }
 
-func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> String {
+func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> (String, [StateVariable]) {
     let projectDir = FileManager.default.currentDirectoryPath
 
     let buildProcess = Process()
@@ -182,7 +182,22 @@ func extractEntryViewDescription(from mainFile: String, sourcesDir: String) thro
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to capture output from \(executablePath)."])
     }
 
-    return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    let fileContents = try String(contentsOfFile: mainFile, encoding: .utf8)
+    let lines = fileContents.components(separatedBy: .newlines)
+    
+    var stateVariables: [StateVariable] = []
+    
+    // Parse state variables
+    for line in lines {
+        let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+        if trimmedLine.hasPrefix("@State") {
+            if let stateVar = StateVariable.parse(trimmedLine) {
+                stateVariables.append(stateVar)
+            }
+        }
+    }
+    
+    return (output, stateVariables)
 }
 
 func generatePlatformFiles(from entryViewDescription: String, buildDir: String) throws {

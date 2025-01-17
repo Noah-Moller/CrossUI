@@ -28,11 +28,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
     
     import SwiftUI
     
-    struct ContentView: View {
-        var body: some View {
-            \(rootView.render(platform: .macOS))
-        }
-    }
+    \(rootView.render(platform: .macOS))
     """
     try swiftUISource.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
     
