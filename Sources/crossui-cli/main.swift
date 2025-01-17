@@ -59,6 +59,19 @@ default:
 func buildProject() throws {
     print("Building project...")
     
+    if #available(macOS 13.0, *) {
+        let buildFolderRemover = Process()
+        let dir: String = (buildFolderRemover.currentDirectoryURL?.path())!
+        buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
+        buildFolderRemover.arguments = ["-rf", "\(dir)Build"]
+        try buildFolderRemover.run()
+        buildFolderRemover.waitUntilExit()
+        
+        print("Folder removed")
+    } else {
+        // Fallback on earlier versions
+    }
+    
     let projectDir = FileManager.default.currentDirectoryPath
     let sourcesDir = "\(projectDir)/Sources"
     
@@ -96,16 +109,6 @@ func buildProject() throws {
 #if os(macOS)
 @available(macOS 13.0, *)
 func buildAndRunMacOSApp(appName: String) throws {
-    let buildFolderRemover = Process()
-    
-    let dir: String = (buildFolderRemover.currentDirectoryURL?.path())!
-    
-    buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
-    buildFolderRemover.arguments = ["-rf", "\(dir)Build"]
-    try buildFolderRemover.run()
-    buildFolderRemover.waitUntilExit()
-    
-    print("Folder removed")
     
     let macOSDir = "Build/macOS"
     let buildDir = "\(macOSDir)/build"  // Local build directory
