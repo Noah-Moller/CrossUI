@@ -20,6 +20,12 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
     // Generate source files
     let contentViewPath = "\(sourceDir)/ContentView.swift"
     let swiftUISource = """
+    //
+    // Made with CrossUI compiled to SwiftUI
+    //
+    // Binary created at: \(Date())
+    //
+    
     import SwiftUI
     
     struct ContentView: View {
@@ -32,6 +38,12 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
     
     let appSwiftPath = "\(sourceDir)/\(appName)App.swift"
     let appSwiftContent = """
+    //
+    // Made with CrossUI compiled to SwiftUI
+    //
+    // Binary created at: \(Date())
+    //
+    
     import SwiftUI
     
     @main

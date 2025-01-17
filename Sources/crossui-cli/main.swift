@@ -88,15 +88,17 @@ func buildProject() throws {
 #if os(macOS)
 func buildAndRunMacOSApp(appName: String) throws {
     let macOSDir = "Build/macOS"
+    let buildDir = "\(macOSDir)/build"  // Local build directory
     
-    // Build the app using xcodebuild
+    // Clean and build the app using xcodebuild
     let buildProcess = Process()
     buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
     buildProcess.arguments = [
         "-project", "\(macOSDir)/\(appName).xcodeproj",
         "-scheme", appName,
         "-configuration", "Debug",
-        "build"
+        "-derivedDataPath", buildDir,
+        "clean", "build"
     ]
     
     try buildProcess.run()
@@ -106,38 +108,8 @@ func buildAndRunMacOSApp(appName: String) throws {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build macOS app"])
     }
     
-    // Find the built app in DerivedData
-    let userHomeDir = FileManager.default.homeDirectoryForCurrentUser.path
-    let derivedDataDir = "\(userHomeDir)/Library/Developer/Xcode/DerivedData"
-    
-    // Use find command to locate the app
-    let findAppProcess = Process()
-    findAppProcess.executableURL = URL(fileURLWithPath: "/usr/bin/find")
-    findAppProcess.arguments = [
-        derivedDataDir,
-        "-name", "\(appName).app",
-        "-type", "d",
-        "-path", "*/Build/Products/Debug/*"
-    ]
-    
-    let pipe = Pipe()
-    findAppProcess.standardOutput = pipe
-    
-    try findAppProcess.run()
-    findAppProcess.waitUntilExit()
-    
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    let paths = String(data: data, encoding: .utf8)?
-        .components(separatedBy: .newlines)
-        .filter { !$0.isEmpty }
-        .filter { $0.hasSuffix(".app") } ?? []
-    
-    guard !paths.isEmpty else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find built app in DerivedData"])
-    }
-    
-    // Take the first valid app path
-    let appPath = paths[0]
+    // The app should be in a known location now
+    let appPath = "\(buildDir)/Build/Products/Debug/\(appName).app"
     print("Launching app at: \(appPath)")
     
     guard FileManager.default.fileExists(atPath: appPath) else {
