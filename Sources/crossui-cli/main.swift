@@ -146,33 +146,42 @@ func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -
 func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> (String, [StateVariable]) {
     let projectDir = FileManager.default.currentDirectoryPath
     
-    // First, read and parse the state variables from the file
     let fileContents = try String(contentsOfFile: mainFile, encoding: .utf8)
     let lines = fileContents.components(separatedBy: .newlines)
     
     var stateVariables: [StateVariable] = []
+    var inContentView = false
+    var bodyContent = ""
     
-    // Parse state variables
+    // Parse state variables and body content
     for line in lines {
         let trimmedLine = line.trimmingCharacters(in: .whitespaces)
-        if trimmedLine.hasPrefix("@State") {
-            if let stateVar = StateVariable.parse(trimmedLine) {
-                stateVariables.append(stateVar)
+        
+        if trimmedLine.contains("struct ContentView: View {") {
+            inContentView = true
+            continue
+        }
+        
+        if inContentView {
+            if trimmedLine.hasPrefix("@State") {
+                if let stateVar = StateVariable.parse(trimmedLine) {
+                    stateVariables.append(stateVar)
+                }
+            } else if trimmedLine.contains("var body: some View {") {
+                // Start capturing body content
+                bodyContent = try String(contentsOfFile: mainFile, encoding: .utf8)
+                break
             }
         }
     }
     
-    // Build and run the project to get the view description
+    // Build and run to get the rendered body content
     let buildProcess = Process()
     buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
     buildProcess.arguments = ["build", "--package-path", projectDir]
     
     try buildProcess.run()
     buildProcess.waitUntilExit()
-    
-    guard buildProcess.terminationStatus == 0 else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build project at \(projectDir)."])
-    }
     
     let executableName = projectDir.split(separator: "/").last ?? "Main"
     let executablePath = "\(projectDir)/.build/debug/\(executableName)"

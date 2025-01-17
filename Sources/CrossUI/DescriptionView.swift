@@ -27,10 +27,10 @@ public struct DescriptionView: View {
         
         switch platform {
         case .macOS:
+            let indent = "    "
             return """
             struct ContentView: View {
-            \(stateDeclarations)
-                
+            \(stateDeclarations.isEmpty ? "" : "\n\(stateDeclarations)\n")
                 var body: some View {
                     \(description)
                 }
