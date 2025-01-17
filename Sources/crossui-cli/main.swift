@@ -116,7 +116,8 @@ func buildAndRunMacOSApp(appName: String) throws {
     findAppProcess.arguments = [
         derivedDataDir,
         "-name", "\(appName).app",
-        "-type", "d"
+        "-type", "d",
+        "-path", "*/Build/Products/Debug/*"
     ]
     
     let pipe = Pipe()
