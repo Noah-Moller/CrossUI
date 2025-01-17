@@ -40,7 +40,11 @@ case "new":
 
 case "build":
     do {
-        try buildProject()
+        if #available(macOS 13.0, *) {
+            try buildProject()
+        } else {
+            // Fallback on earlier versions
+        }
     } catch {
         print("Error building project: \(error)")
         exit(1)
@@ -52,6 +56,7 @@ default:
     exit(1)
 }
 
+@available(macOS 13.0, *)
 func buildProject() throws {
     print("Building project...")
     
@@ -86,10 +91,11 @@ func buildProject() throws {
 }
 
 #if os(macOS)
+@available(macOS 13.0, *)
 func buildAndRunMacOSApp(appName: String) throws {
     let buildFolderRemover = Process()
     
-    let dir = try String(contentsOf: buildFolderRemover.currentDirectoryURL!)
+    let dir: String = (buildFolderRemover.currentDirectoryURL?.path())!
     
     buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
     buildFolderRemover.arguments = [" -rf", "\(dir)/Build"]
