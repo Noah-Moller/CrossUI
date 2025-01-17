@@ -136,7 +136,7 @@ func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -
     let enumerator = fileManager.enumerator(atPath: sourcesDir)
     while let element = enumerator?.nextObject() as? String {
         if element.hasSuffix("main.swift") {
-            return "\(sourcesDir)/\(projectDirectory)/\(element)"
+            return "\(element)"
         }
     }
 
