@@ -89,8 +89,8 @@ func buildProject() throws {
 func buildAndRunMacOSApp(appName: String) throws {
     let buildFolderRemover = Process()
     
-    buildFolderRemover.executableURL = URL(fileURLWithPath: "/usr/bin/rm")
-    buildFolderRemover.arguments = ["-rf", "Build/macOS/build"]
+    buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
+    buildFolderRemover.arguments = [" -rf", "Build/macOS/build"]
     try buildFolderRemover.run()
     buildFolderRemover.waitUntilExit()
     
