@@ -145,43 +145,8 @@ func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -
 
 func extractEntryViewDescription(from mainFile: String, sourcesDir: String) throws -> (String, [StateVariable]) {
     let projectDir = FileManager.default.currentDirectoryPath
-
-    let buildProcess = Process()
-    buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
-    buildProcess.arguments = ["build", "--package-path", projectDir]
-
-    try buildProcess.run()
-    buildProcess.waitUntilExit()
-
-    guard buildProcess.terminationStatus == 0 else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build project at \(projectDir)."])
-    }
-
-    let executableName = projectDir.split(separator: "/").last ?? "Main"
-    let executablePath = "\(projectDir)/.build/debug/\(executableName)"
-
-    guard FileManager.default.fileExists(atPath: executablePath) else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Executable not found at \(executablePath)."])
-    }
-
-    let executeProcess = Process()
-    executeProcess.executableURL = URL(fileURLWithPath: executablePath)
-
-    let pipe = Pipe()
-    executeProcess.standardOutput = pipe
-
-    try executeProcess.run()
-    executeProcess.waitUntilExit()
-
-    guard executeProcess.terminationStatus == 0 else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to execute \(executablePath)."])
-    }
-
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    guard let output = String(data: data, encoding: .utf8) else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to capture output from \(executablePath)."])
-    }
-
+    
+    // First, read and parse the state variables from the file
     let fileContents = try String(contentsOfFile: mainFile, encoding: .utf8)
     let lines = fileContents.components(separatedBy: .newlines)
     
@@ -196,6 +161,33 @@ func extractEntryViewDescription(from mainFile: String, sourcesDir: String) thro
             }
         }
     }
+    
+    // Build and run the project to get the view description
+    let buildProcess = Process()
+    buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
+    buildProcess.arguments = ["build", "--package-path", projectDir]
+    
+    try buildProcess.run()
+    buildProcess.waitUntilExit()
+    
+    guard buildProcess.terminationStatus == 0 else {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build project at \(projectDir)."])
+    }
+    
+    let executableName = projectDir.split(separator: "/").last ?? "Main"
+    let executablePath = "\(projectDir)/.build/debug/\(executableName)"
+    
+    let runProcess = Process()
+    runProcess.executableURL = URL(fileURLWithPath: executablePath)
+    
+    let pipe = Pipe()
+    runProcess.standardOutput = pipe
+    
+    try runProcess.run()
+    runProcess.waitUntilExit()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8) ?? ""
     
     return (output, stateVariables)
 }

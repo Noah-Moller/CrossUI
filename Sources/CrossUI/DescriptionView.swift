@@ -17,19 +17,19 @@ public struct DescriptionView: View {
         let stateDeclarations = stateVariables.map { variable -> String in
             switch platform {
             case .macOS:
-                return variable.toSwiftUI()
+                return "    " + variable.toSwiftUI()
             case .windows:
                 return variable.toWinUI()
             case .linux:
                 return "// Linux state management not implemented"
             }
-        }.joined(separator: "\n    ")
+        }.joined(separator: "\n")
         
         switch platform {
         case .macOS:
             return """
             struct ContentView: View {
-                \(stateDeclarations)
+            \(stateDeclarations)
                 
                 var body: some View {
                     \(description)
