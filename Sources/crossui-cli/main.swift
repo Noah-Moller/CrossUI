@@ -64,15 +64,11 @@ func buildProject() throws {
     
     print("Found main.swift at: \(mainFile)")
     
-    // Instead of trying to cast the string to a View, we'll use it directly
     let entryViewDescription = try extractEntryViewDescription(from: mainFile, sourcesDir: sourcesDir)
     
     print("Extracted entry view description: \(entryViewDescription)")
     
-    // Get the project name from the directory name
     let projectName = projectDir.split(separator: "/").last ?? "CrossUIApp"
-    
-    // Create a wrapper view that will render the description
     let wrapperView = DescriptionView(description: entryViewDescription)
     
     // Generate platform-specific files
@@ -80,8 +76,73 @@ func buildProject() throws {
     try generateWindowsProject(appName: String(projectName), rootView: wrapperView)
     try generateLinuxProject(appName: String(projectName), rootView: wrapperView)
     
+    #if os(macOS)
+    // Build and run the Xcode project on macOS
+    print("Building and running macOS app...")
+    try buildAndRunMacOSApp(appName: String(projectName))
+    #endif
+    
     print("Build complete!")
 }
+
+#if os(macOS)
+func buildAndRunMacOSApp(appName: String) throws {
+    let macOSDir = "Build/macOS"
+    
+    // Build the app using xcodebuild
+    let buildProcess = Process()
+    buildProcess.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
+    buildProcess.arguments = [
+        "-project", "\(macOSDir)/\(appName).xcodeproj",
+        "-scheme", appName,
+        "-configuration", "Debug",
+        "build"
+    ]
+    
+    try buildProcess.run()
+    buildProcess.waitUntilExit()
+    
+    if buildProcess.terminationStatus != 0 {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build macOS app"])
+    }
+    
+    // Find the built app in the DerivedData directory
+    let userHomeDir = FileManager.default.homeDirectoryForCurrentUser.path
+    let derivedDataDir = "\(userHomeDir)/Library/Developer/Xcode/DerivedData"
+    
+    let findAppProcess = Process()
+    findAppProcess.executableURL = URL(fileURLWithPath: "/usr/bin/find")
+    findAppProcess.arguments = [
+        derivedDataDir,
+        "-name", "\(appName).app",
+        "-type", "d",
+        "-depth", "7"
+    ]
+    
+    let pipe = Pipe()
+    findAppProcess.standardOutput = pipe
+    
+    try findAppProcess.run()
+    findAppProcess.waitUntilExit()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    guard let appPath = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find built app"])
+    }
+    
+    // Open the app using 'open' command
+    let openProcess = Process()
+    openProcess.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+    openProcess.arguments = [appPath]
+    
+    try openProcess.run()
+    openProcess.waitUntilExit()
+    
+    if openProcess.terminationStatus != 0 {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to launch macOS app"])
+    }
+}
+#endif
 
 func findMainSwiftFile(in sourcesDir: String, projectDirectory: String) throws -> String? {
     let fileManager = FileManager.default

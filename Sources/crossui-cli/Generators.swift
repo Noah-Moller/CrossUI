@@ -63,7 +63,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
         <key>CFBundleVersion</key>
         <string>1</string>
         <key>LSMinimumSystemVersion</key>
-        <string>10.15</string>
+        <string>15.0</string>
     </dict>
     </plist>
     """
@@ -207,7 +207,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
                         "$(inherited)",
                         "@executable_path/../Frameworks",
                     );
-                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    MACOSX_DEPLOYMENT_TARGET = 15.0;
                     OTHER_LDFLAGS = (
                         "$(inherited)",
                     );
@@ -230,7 +230,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
                         "$(inherited)",
                         "@executable_path/../Frameworks",
                     );
-                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    MACOSX_DEPLOYMENT_TARGET = 15.0;
                     OTHER_LDFLAGS = (
                         "$(inherited)",
                     );
@@ -290,7 +290,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
                     GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
                     GCC_WARN_UNUSED_FUNCTION = YES;
                     GCC_WARN_UNUSED_VARIABLE = YES;
-                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    MACOSX_DEPLOYMENT_TARGET = 15.0;
                     MTL_ENABLE_DEBUG_INFO = YES;
                     ONLY_ACTIVE_ARCH = YES;
                     SDKROOT = macosx;
@@ -343,7 +343,7 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
                     GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
                     GCC_WARN_UNUSED_FUNCTION = YES;
                     GCC_WARN_UNUSED_VARIABLE = YES;
-                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    MACOSX_DEPLOYMENT_TARGET = 15.0;
                     MTL_ENABLE_DEBUG_INFO = NO;
                     SDKROOT = macosx;
                     SWIFT_COMPILATION_MODE = wholemodule;
@@ -543,7 +543,7 @@ private func generateXcodeProjContent(appName: String) -> String {
                     GENERATE_INFOPLIST_FILE = YES;
                     INFOPLIST_FILE = Info.plist;
                     LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    MACOSX_DEPLOYMENT_TARGET = 15.0;
                     PRODUCT_BUNDLE_IDENTIFIER = "com.crossui.\(appName.lowercased())";
                     PRODUCT_NAME = "$(TARGET_NAME)";
                     SDKROOT = macosx;
