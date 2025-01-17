@@ -89,7 +89,7 @@ func buildProject() throws {
 func buildAndRunMacOSApp(appName: String) throws {
     let buildFolderRemover = Process()
     
-    let dir = buildFolderRemover.currentDirectoryURL?.absoluteString
+    let dir = try String(contentsOf: buildFolderRemover.currentDirectoryURL!)
     
     buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
     buildFolderRemover.arguments = [" -rf", "\(dir)/Build"]
