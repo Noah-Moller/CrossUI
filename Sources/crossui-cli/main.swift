@@ -56,7 +56,6 @@ default:
     exit(1)
 }
 
-@available(macOS 13.0, *)
 func buildProject() throws {
     print("Building project...")
     
@@ -81,11 +80,15 @@ func buildProject() throws {
     try generateWindowsProject(appName: String(projectName), rootView: wrapperView)
     try generateLinuxProject(appName: String(projectName), rootView: wrapperView)
     
-    #if os(macOS)
-    // Build and run the Xcode project on macOS
-    print("Building and running macOS app...")
-    try buildAndRunMacOSApp(appName: String(projectName))
-    #endif
+    if #available(macOS 13.0, *) {
+#if os(macOS)
+        // Build and run the Xcode project on macOS
+        print("Building and running macOS app...")
+        try buildAndRunMacOSApp(appName: String(projectName))
+#endif
+    } else {
+        // Fallback on earlier versions
+    }
     
     print("Build complete!")
 }
@@ -98,7 +101,7 @@ func buildAndRunMacOSApp(appName: String) throws {
     let dir: String = (buildFolderRemover.currentDirectoryURL?.path())!
     
     buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
-    buildFolderRemover.arguments = [" -rf", "\(dir)Build"]
+    buildFolderRemover.arguments = ["-rf", "\(dir)Build"]
     try buildFolderRemover.run()
     buildFolderRemover.waitUntilExit()
     
