@@ -87,6 +87,13 @@ func buildProject() throws {
 
 #if os(macOS)
 func buildAndRunMacOSApp(appName: String) throws {
+    let buildFolderRemover = Process()
+    
+    buildFolderRemover.executableURL = URL(fileURLWithPath: "/bin/rm")
+    buildFolderRemover.arguments = ["-rf", "Build/macOS/build"]
+    try buildFolderRemover.run()
+    buildFolderRemover.waitUntilExit()
+    
     let macOSDir = "Build/macOS"
     let buildDir = "\(macOSDir)/build"  // Local build directory
     
