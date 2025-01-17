@@ -69,7 +69,14 @@ func buildProject() throws {
 
     print("Extracted entry view description: \(entryViewDescription)")
 
-    try generatePlatformFiles(from: entryViewDescription, buildDir: buildDir)
+    // Get the project name from the directory name
+    let projectName = projectDir.split(separator: "/").last ?? "CrossUIApp"
+    
+    // Generate platform-specific files
+    try generateMacOSProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
+    try generateWindowsProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
+    try generateLinuxProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
+    
     print("Build complete!")
 }
 

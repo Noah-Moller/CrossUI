@@ -12,18 +12,24 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
     let macOSDir = "Build/macOS"
     try FileManager.default.createDirectory(atPath: macOSDir, withIntermediateDirectories: true, attributes: nil)
 
-    let swiftUIOutput = rootView.render(platform: .macOS)
-
+    // Generate SwiftUI View file
     let contentViewPath = macOSDir + "/ContentView.swift"
     let swiftUISource = """
     import SwiftUI
-
+    
     struct ContentView: View {
         var body: some View {
-            \(swiftUIOutput)
+            \(rootView.render(platform: .macOS))
         }
     }
-
+    """
+    try swiftUISource.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
+    
+    // Generate App file
+    let appSwiftPath = macOSDir + "/\(appName)App.swift"
+    let appSwiftContent = """
+    import SwiftUI
+    
     @main
     struct \(appName)App: App {
         var body: some Scene {
@@ -33,18 +39,17 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
         }
     }
     """
-    try swiftUISource.write(toFile: contentViewPath, atomically: true, encoding: .utf8)
+    try appSwiftContent.write(toFile: appSwiftPath, atomically: true, encoding: .utf8)
     
+    // Generate project.pbxproj
     let xcodeProjDir = macOSDir + "/\(appName).xcodeproj"
     try FileManager.default.createDirectory(atPath: xcodeProjDir, withIntermediateDirectories: true, attributes: nil)
-
+    
     let pbxprojPath = xcodeProjDir + "/project.pbxproj"
-    let pbxprojContent = """
-    // Placeholder PBX project
-    // You would put an actual minimal PBX project file here
-    """
+    let pbxprojContent = generateXcodeProjContent(appName: appName)
     try pbxprojContent.write(toFile: pbxprojPath, atomically: true, encoding: .utf8)
-
+    
+    // Generate Info.plist
     let infoPlistPath = macOSDir + "/Info.plist"
     let infoPlistContent = """
     <?xml version="1.0" encoding="UTF-8"?>
@@ -53,10 +58,113 @@ func generateMacOSProject(appName: String, rootView: any View) throws {
     <dict>
         <key>CFBundleName</key>
         <string>\(appName)</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.crossui.\(appName.lowercased())</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleShortVersionString</key>
+        <string>1.0</string>
+        <key>CFBundleVersion</key>
+        <string>1</string>
+        <key>LSMinimumSystemVersion</key>
+        <string>10.15</string>
+        <key>LSApplicationCategoryType</key>
+        <string>public.app-category.developer-tools</string>
     </dict>
     </plist>
     """
     try infoPlistContent.write(toFile: infoPlistPath, atomically: true, encoding: .utf8)
+}
+
+// Helper function to generate Xcode project content
+private func generateXcodeProjContent(appName: String) -> String {
+    // This is a simplified version. In practice, you'd want to use a proper Xcode project template
+    return """
+    // !$*UTF8*$!
+    {
+        archiveVersion = 1;
+        classes = {
+        };
+        objectVersion = 55;
+        objects = {
+            /* Begin PBXBuildFile section */
+            1234567890ABCDEF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCD0 /* ContentView.swift */; };
+            1234567890ABCD1 /* \(appName)App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1234567890ABCD2 /* \(appName)App.swift */; };
+            /* End PBXBuildFile section */
+            
+            /* Begin PBXFileReference section */
+            1234567890ABCD0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+            1234567890ABCD2 /* \(appName)App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "\(appName)App.swift"; sourceTree = "<group>"; };
+            1234567890ABCD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+            1234567890ABCD4 /* \(appName).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "\(appName).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+            /* End PBXFileReference section */
+            
+            /* Begin PBXFrameworksBuildPhase section */
+            1234567890ABCD5 /* Frameworks */ = {
+                isa = PBXFrameworksBuildPhase;
+                buildActionMask = 2147483647;
+                files = (
+                );
+                runOnlyForDeploymentPostprocessing = 0;
+            };
+            /* End PBXFrameworksBuildPhase section */
+            
+            /* Begin PBXGroup section */
+            1234567890ABCD6 /* \(appName) */ = {
+                isa = PBXGroup;
+                children = (
+                    1234567890ABCD0 /* ContentView.swift */,
+                    1234567890ABCD2 /* \(appName)App.swift */,
+                    1234567890ABCD3 /* Info.plist */,
+                );
+                path = \(appName);
+                sourceTree = "<group>";
+            };
+            /* End PBXGroup section */
+            
+            /* Begin PBXNativeTarget section */
+            1234567890ABCD7 /* \(appName) */ = {
+                isa = PBXNativeTarget;
+                buildConfigurationList = 1234567890ABCD8;
+                buildPhases = (
+                    1234567890ABCD5 /* Frameworks */,
+                    1234567890ABCD9 /* Sources */,
+                );
+                buildRules = (
+                );
+                dependencies = (
+                );
+                name = \(appName);
+                productName = \(appName);
+                productReference = 1234567890ABCD4 /* \(appName).app */;
+                productType = "com.apple.product-type.application";
+            };
+            /* End PBXNativeTarget section */
+            
+            /* Begin XCBuildConfiguration section */
+            1234567890ABCDA /* Debug */ = {
+                isa = XCBuildConfiguration;
+                buildSettings = {
+                    ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                    CODE_SIGN_STYLE = Automatic;
+                    CURRENT_PROJECT_VERSION = 1;
+                    ENABLE_PREVIEWS = YES;
+                    GENERATE_INFOPLIST_FILE = YES;
+                    INFOPLIST_FILE = Info.plist;
+                    LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+                    MACOSX_DEPLOYMENT_TARGET = 10.15;
+                    PRODUCT_BUNDLE_IDENTIFIER = "com.crossui.\(appName.lowercased())";
+                    PRODUCT_NAME = "$(TARGET_NAME)";
+                    SDKROOT = macosx;
+                    SWIFT_VERSION = 5.0;
+                };
+                name = Debug;
+            };
+            /* End XCBuildConfiguration section */
+        };
+        rootObject = 1234567890ABCDB /* Project object */;
+    }
+    """
 }
 
 func generateWindowsProject(appName: String, rootView: any View) throws {
