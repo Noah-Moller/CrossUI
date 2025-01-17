@@ -106,11 +106,29 @@ func buildAndRunMacOSApp(appName: String) throws {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to build macOS app"])
     }
     
-    // The app should be in Build/macOS/build/Debug/
-    let appPath = "\(macOSDir)/build/Debug/\(appName).app"
+    // Find the built app in DerivedData
+    let userHomeDir = FileManager.default.homeDirectoryForCurrentUser.path
+    let derivedDataDir = "\(userHomeDir)/Library/Developer/Xcode/DerivedData"
     
-    guard FileManager.default.fileExists(atPath: appPath) else {
-        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find built app at \(appPath)"])
+    // Use find command to locate the app
+    let findAppProcess = Process()
+    findAppProcess.executableURL = URL(fileURLWithPath: "/usr/bin/find")
+    findAppProcess.arguments = [
+        derivedDataDir,
+        "-name", "\(appName).app",
+        "-type", "d"
+    ]
+    
+    let pipe = Pipe()
+    findAppProcess.standardOutput = pipe
+    
+    try findAppProcess.run()
+    findAppProcess.waitUntilExit()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    guard let appPath = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+          !appPath.isEmpty else {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find built app in DerivedData"])
     }
     
     print("Launching app at: \(appPath)")
