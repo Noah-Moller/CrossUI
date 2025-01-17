@@ -57,28 +57,28 @@ public struct Text: RenderableView {
     }
 }
 
-//public struct TextField: View {
-//    var text: String
-//    let title: String
-//    
-//    public init(_ text: String, title: String) {
-//        self.text = text
-//        self.title = title
-//    }
-//    
-//    public func render(platform: Platform) -> String {
-//        switch platform {
-//        case .windows:
-//            return "<TextBlock Text=\"\(content)\" />"
-//        case .macOS:
-//            return """
-//        TextField("\(title)", text: $\(text)
-//        """
-//        case .linux:
-//            return "GtkLabel(\"\(content)\")"
-//        }
-//    }
-//}
+public struct TextField: View {
+    var text: String
+    let title: String
+    
+    public init(_ text: String, title: String) {
+        self.text = text
+        self.title = title
+    }
+    
+    public func render(platform: Platform) -> String {
+        switch platform {
+        case .windows:
+            return "Nil"
+        case .macOS:
+            return """
+        TextField("\(title)", text: $\(text)
+        """
+        case .linux:
+            return "Nil"
+        }
+    }
+}
 
 public struct VStack: RenderableView {
     let children: [View]
@@ -92,7 +92,7 @@ public struct VStack: RenderableView {
         case .macOS:
             return """
             VStack {
-                \(children.map { $0.render(platform: .macOS) }.joined(separator: ", "))
+                \(children.map { $0.render(platform: .macOS) }.joined(separator: "\n"))
             }
             """
         case .windows:
