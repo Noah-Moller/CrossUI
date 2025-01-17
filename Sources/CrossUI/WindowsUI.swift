@@ -7,7 +7,7 @@
 
 import Foundation
 
-public func renderWinUIRoot(_ view: View) -> String {
+public func renderWinUIRoot(_ view: any View) -> String {
     let content = view.render(platform: .windows)
     return """
     <Page

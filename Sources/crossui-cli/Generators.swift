@@ -8,7 +8,7 @@
 import Foundation
 import CrossUI
 
-func generateMacOSProject(appName: String, rootView: View) throws {
+func generateMacOSProject(appName: String, rootView: any View) throws {
     let macOSDir = "Build/macOS"
     try FileManager.default.createDirectory(atPath: macOSDir, withIntermediateDirectories: true, attributes: nil)
 
@@ -59,7 +59,7 @@ func generateMacOSProject(appName: String, rootView: View) throws {
     try infoPlistContent.write(toFile: infoPlistPath, atomically: true, encoding: .utf8)
 }
 
-func generateWindowsProject(appName: String, rootView: View) throws {
+func generateWindowsProject(appName: String, rootView: any View) throws {
     let windowsDir = "Build/windows"
     try FileManager.default.createDirectory(atPath: windowsDir, withIntermediateDirectories: true, attributes: nil)
 
@@ -133,7 +133,7 @@ func generateWindowsProject(appName: String, rootView: View) throws {
     try appCsContent.write(toFile: appCsPath, atomically: true, encoding: .utf8)
 }
 
-func generateLinuxProject(appName: String, rootView: View) throws {
+func generateLinuxProject(appName: String, rootView: any View) throws {
     let linuxDir = "Build/linux"
     try FileManager.default.createDirectory(atPath: linuxDir, withIntermediateDirectories: true, attributes: nil)
     let linuxUIOutput = rootView.render(platform: .linux)

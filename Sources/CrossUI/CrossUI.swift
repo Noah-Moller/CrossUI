@@ -9,6 +9,8 @@ import Foundation
 
 public protocol View {
     func render(platform: Platform) -> String
+    associatedtype Body: View
+    var body: Body { get }
 }
 
 public protocol Project {
@@ -38,14 +40,22 @@ extension RenderableView {
     }
 }
 
-public struct Text: RenderableView {
+public struct Text: View {
     let content: String
-
+    
     public init(_ content: String) {
         self.content = content
     }
-
-    public func renderContent(platform: Platform) -> String {
+    
+    public init(_ binding: Binding<String>) {
+        self.content = binding.wrappedValue
+    }
+    
+    public var body: some View {
+        self
+    }
+    
+    public func render(platform: Platform) -> String {
         switch platform {
         case .macOS:
             return "Text(\"\(content)\")"
@@ -58,36 +68,44 @@ public struct Text: RenderableView {
 }
 
 public struct TextField: View {
-    var text: String
+    var text: Binding<String>
     let title: String
     
-    public init(_ text: String, title: String) {
+    public init(_ text: Binding<String>, title: String) {
         self.text = text
         self.title = title
+    }
+    
+    public var body: some View {
+        self
     }
     
     public func render(platform: Platform) -> String {
         switch platform {
         case .windows:
-            return "Nil"
+            return "<TextBox Text=\"{Binding \(text.wrappedValue)}\" PlaceholderText=\"\(title)\" />"
         case .macOS:
             return """
-        TextField("\(title)", text: $\(text)
-        """
+            TextField("\(title)", text: \(text.wrappedValue))
+            """
         case .linux:
-            return "Nil"
+            return "GtkEntry(text: \"\(text.wrappedValue)\", placeholder: \"\(title)\")"
         }
     }
 }
 
-public struct VStack: RenderableView {
-    let children: [View]
+public struct VStack: View {
+    let children: [any View]
 
-    public init(@ViewBuilder _ content: () -> [View]) {
+    public init(@ViewBuilder _ content: () -> [any View]) {
         self.children = content()
     }
+    
+    public var body: some View {
+        self
+    }
 
-    public func renderContent(platform: Platform) -> String {
+    public func render(platform: Platform) -> String {
         switch platform {
         case .macOS:
             return """
@@ -113,7 +131,7 @@ public struct VStack: RenderableView {
 
 @resultBuilder
 public struct ViewBuilder {
-    public static func buildBlock(_ components: View...) -> [View] {
+    public static func buildBlock(_ components: any View...) -> [any View] {
         components
     }
 }
