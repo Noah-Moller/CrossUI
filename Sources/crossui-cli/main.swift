@@ -126,12 +126,22 @@ func buildAndRunMacOSApp(appName: String) throws {
     findAppProcess.waitUntilExit()
     
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    guard let appPath = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-          !appPath.isEmpty else {
+    let paths = String(data: data, encoding: .utf8)?
+        .components(separatedBy: .newlines)
+        .filter { !$0.isEmpty }
+        .filter { $0.hasSuffix(".app") } ?? []
+    
+    guard !paths.isEmpty else {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find built app in DerivedData"])
     }
     
+    // Take the first valid app path
+    let appPath = paths[0]
     print("Launching app at: \(appPath)")
+    
+    guard FileManager.default.fileExists(atPath: appPath) else {
+        throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "App not found at path: \(appPath)"])
+    }
     
     // Open the app using 'open' command
     let openProcess = Process()
