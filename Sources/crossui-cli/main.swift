@@ -54,28 +54,31 @@ default:
 
 func buildProject() throws {
     print("Building project...")
-
+    
     let projectDir = FileManager.default.currentDirectoryPath
     let sourcesDir = "\(projectDir)/Sources"
-    let buildDir = "\(projectDir)/Build"
-
+    
     guard let mainFile = try findMainSwiftFile(in: sourcesDir, projectDirectory: projectDir) else {
         throw NSError(domain: "BuildError", code: 1, userInfo: [NSLocalizedDescriptionKey: "main.swift not found in Sources."])
     }
-
+    
     print("Found main.swift at: \(mainFile)")
-
+    
+    // Instead of trying to cast the string to a View, we'll use it directly
     let entryViewDescription = try extractEntryViewDescription(from: mainFile, sourcesDir: sourcesDir)
-
+    
     print("Extracted entry view description: \(entryViewDescription)")
-
+    
     // Get the project name from the directory name
     let projectName = projectDir.split(separator: "/").last ?? "CrossUIApp"
     
+    // Create a wrapper view that will render the description
+    let wrapperView = DescriptionView(description: entryViewDescription)
+    
     // Generate platform-specific files
-    try generateMacOSProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
-    try generateWindowsProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
-    try generateLinuxProject(appName: String(projectName), rootView: entryViewDescription as! (any View))
+    try generateMacOSProject(appName: String(projectName), rootView: wrapperView)
+    try generateWindowsProject(appName: String(projectName), rootView: wrapperView)
+    try generateLinuxProject(appName: String(projectName), rootView: wrapperView)
     
     print("Build complete!")
 }
